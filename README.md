@@ -4,7 +4,17 @@ A starting point for building your own developer portal on top of Azure API Mana
 
 This isn't a finished product — it's a foundation. The codebase is structured so that an AI coding assistant can understand and extend it: clear page patterns, consistent component conventions, and a single CSS file with predictable class naming. Ask your agent to add a page, wire up a new API, or restyle the whole thing.
 
----
+
+
+## Quick start
+
+Try the hosted version at **https://icy-water-005686203.6.azurestaticapps.net** — sign in with your Azure credentials or an access token.
+
+![Preview](docs/preview.png)
+
+Two sign-in options out of the box:
+- **Microsoft Entra ID** — MSAL redirect flow with multi-tenant support
+- **Access token** — paste a token from `az account get-access-token` for quick CLI-based access
 
 ## What's included
 
@@ -22,14 +32,6 @@ The portal ships with working pages that cover the core Azure API Management AI 
 | **Logs** | KQL queries against `ApiManagementGatewayLlmLog` with time range and model filters. Click any row for full input/output. |
 
 Plus: workspace selector (subscription → APIM instance → workspace), global `Ctrl+K` search, light/dark/system theme, and multi-tenant directory switching.
-
-### Quick start
-
-Try the hosted version at **https://icy-water-005686203.6.azurestaticapps.net** — sign in with your Azure credentials or an access token.
-
-Two sign-in options out of the box:
-- **Microsoft Entra ID** — MSAL redirect flow with multi-tenant support
-- **Access token** — paste a token from `az account get-access-token` for quick CLI-based access
 
 ---
 
