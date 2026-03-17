@@ -1,7 +1,7 @@
 import SearchBar from './SearchBar';
 import WorkspaceSelector from './WorkspaceSelector';
 import UserMenu from './UserMenu';
-import { FlaskConical } from 'lucide-react';
+import { Github } from 'lucide-react';
 
 export default function Header() {
 
@@ -28,8 +28,8 @@ export default function Header() {
 
       {/* Right: Actions + User */}
       <div className="header-right">
-        <a href="https://aka.ms/ai-gateway/labs" target="_blank" rel="noopener noreferrer" className="icon-btn" aria-label="Labs" title="Labs">
-          <FlaskConical size={16} />
+        <a href="https://github.com/vieiraae/ai-gateway-dev-portal" target="_blank" rel="noopener noreferrer" className="icon-btn" aria-label="GitHub" title="Fork the project on GitHub">
+          <Github size={16} />
         </a>
         <UserMenu />
       </div>

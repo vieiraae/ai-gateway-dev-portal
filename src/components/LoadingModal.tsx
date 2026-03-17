@@ -26,7 +26,10 @@ export default function LoadingModal() {
   return (
     <div className="wl-overlay">
       <div className="wl-dialog">
-        <img src="/ai-gateway.svg" alt="" className="wl-logo" />
+        <div className="wl-logo-wrap">
+          <img src="/ai-gateway.svg" alt="" className="wl-logo" />
+          <div className="wl-logo-color" />
+        </div>
         <div className="wl-title">Loading workspace data</div>
         <div className="wl-subtitle">{config.apimService?.name}</div>
 

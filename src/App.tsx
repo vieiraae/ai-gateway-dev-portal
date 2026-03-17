@@ -20,6 +20,7 @@ import Playground from './pages/Playground';
 import Metrics from './pages/Metrics';
 import Logs from './pages/Logs';
 import Analytics from './pages/Analytics';
+import Labs from './pages/Labs';
 
 function LoadingScreen() {
   return (
@@ -53,6 +54,7 @@ function AuthenticatedRoutes() {
           <Route path="metrics" element={<Metrics />} />
           <Route path="logs" element={<Logs />} />
           <Route path="analytics" element={<Analytics />} />
+          <Route path="labs" element={<Labs />} />
           <Route path="*" element={<Navigate to="/dashboard" replace />} />
         </Route>
       </Routes>

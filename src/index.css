@@ -2799,11 +2799,43 @@ button {
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
   animation: confirm-slide-in 0.15s ease-out;
 }
+.wl-logo-wrap {
+  position: relative;
+  width: 40px;
+  height: 40px;
+  margin-bottom: 20px;
+}
 .wl-logo {
-  width: 36px;
-  height: 36px;
-  margin-bottom: 16px;
+  width: 40px;
+  height: 40px;
+  display: block;
   filter: var(--logo-filter);
+}
+.wl-logo-color {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    #3b82f6 0%,
+    #8b5cf6 25%,
+    #ec4899 50%,
+    #f59e0b 75%,
+    #3b82f6 100%
+  );
+  background-size: 200% 100%;
+  animation: wl-color-sweep 2s ease-in-out infinite;
+  mask-image: url('/ai-gateway.svg');
+  mask-size: contain;
+  mask-repeat: no-repeat;
+  mask-position: center;
+  -webkit-mask-image: url('/ai-gateway.svg');
+  -webkit-mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+}
+@keyframes wl-color-sweep {
+  0%   { background-position: 100% 0; }
+  100% { background-position: -100% 0; }
 }
 .wl-title {
   font-size: 16px;
@@ -2867,6 +2899,131 @@ button {
   border-radius: 50%;
   background: var(--text-tertiary);
   margin: 0 4px;
+}
+
+/* ======================== Labs Gallery ======================== */
+
+
+.labs-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 16px;
+}
+.labs-card {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  cursor: pointer;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  display: flex;
+  flex-direction: column;
+}
+.labs-card:hover {
+  border-color: var(--accent);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
+}
+.labs-card-img {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-tertiary);
+}
+.labs-card-body {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+}
+.labs-card-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+.labs-card-desc {
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  margin: 0;
+}
+.labs-card-expand-hint {
+  display: inline-block;
+  vertical-align: middle;
+  margin-left: 4px;
+  color: var(--text-tertiary);
+  opacity: 0.6;
+  transition: opacity 0.15s;
+}
+.labs-card:hover .labs-card-expand-hint {
+  opacity: 1;
+  color: var(--accent);
+}
+.labs-card-collapse-hint {
+  color: var(--text-tertiary);
+  align-self: center;
+  transform: rotate(180deg);
+  opacity: 0.5;
+}
+.labs-card-authors {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.labs-card-author {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: var(--text-tertiary);
+  background: var(--bg-tertiary);
+  padding: 2px 8px;
+  border-radius: 10px;
+  text-decoration: none;
+  transition: color 0.15s;
+}
+.labs-card-author:hover {
+  color: var(--accent);
+}
+.labs-card-date {
+  font-size: 12px;
+  color: var(--text-tertiary);
+}
+.labs-card-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: auto;
+}
+.labs-tag {
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  white-space: nowrap;
+}
+.labs-tag-cat {
+  background: color-mix(in srgb, var(--accent) 15%, transparent);
+  color: var(--accent);
+}
+.labs-tag-svc {
+  background: color-mix(in srgb, var(--success, #22c55e) 15%, transparent);
+  color: var(--success, #22c55e);
+}
+.labs-card-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--accent);
+  text-decoration: none;
+  margin-top: 4px;
+  padding: 6px 0;
+  transition: opacity 0.15s;
+}
+.labs-card-btn:hover {
+  opacity: 0.8;
 }
 
 /* ======================== MCP Servers Page ======================== */
@@ -2977,10 +3134,58 @@ button {
 
 /* ======================== Playground ======================== */
 
+/* ── Playground outer + tabs ── */
+.pg-outer {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+}
+.pg-tabs {
+  display: flex;
+  gap: 0;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-elevated);
+  padding: 0 16px;
+  flex-shrink: 0;
+}
+.pg-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 16px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-tertiary);
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+}
+.pg-tab:hover {
+  color: var(--text-primary);
+}
+.pg-tab.active {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+}
+.pg-coming-soon {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 40px;
+}
+
 .pg-layout {
   display: flex;
   height: 100%;
   overflow: hidden;
+  flex: 1;
+  min-height: 0;
 }
 
 /* ── Config panel (left) ── */

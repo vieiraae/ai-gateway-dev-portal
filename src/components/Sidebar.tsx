@@ -11,6 +11,7 @@ import {
   Activity,
   ScrollText,
   BarChart3,
+  FlaskConical,
   PanelLeftClose,
   PanelLeftOpen,
 } from 'lucide-react';
@@ -30,6 +31,7 @@ const navItems: NavEntry[] = [
   { type: 'link', to: '/subscriptions', label: 'Subscriptions', Icon: KeyRound },
   { type: 'divider' },
   { type: 'link', to: '/playground', label: 'Playground', Icon: Play },
+  { type: 'link', to: '/labs', label: 'Labs', Icon: FlaskConical },
   { type: 'link', to: '/metrics', label: 'Metrics', Icon: Activity },
   { type: 'link', to: '/logs', label: 'Logs', Icon: ScrollText },
   { type: 'link', to: '/analytics', label: 'Analytics', Icon: BarChart3 },

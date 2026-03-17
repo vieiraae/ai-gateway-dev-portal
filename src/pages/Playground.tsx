@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import {
   Play, Send, Square, Trash2, Copy, Check, Bug, Code,
-  ChevronDown, ChevronUp, Bot, User, Loader2,
+  ChevronDown, ChevronUp, Bot, User, Loader2, Server, ArrowLeftRight,
 } from 'lucide-react';
 import { useAzure, type WorkspaceData } from '../context/AzureContext';
 import TraceModal, { type TraceData, type TraceSection } from '../components/TraceModal';
@@ -49,6 +49,8 @@ interface ChatMessage {
 
 export default function Playground() {
   const { workspaceData, config, getCredential }: { workspaceData: WorkspaceData; getCredential: ReturnType<typeof useAzure>['getCredential']; config: { apimService: { gatewayUrl: string; subscriptionId: string; resourceGroup: string; name: string } | null; apimWorkspace: unknown } } = useAzure();
+
+  const [playgroundTab, setPlaygroundTab] = useState<'model' | 'mcp' | 'a2a'>('model');
 
   /* --- Configuration state ---------------------------------------- */
   const [selectedApi, setSelectedApi] = useState<InferenceApi | null>(null);
@@ -478,12 +480,43 @@ export default function Playground() {
   const canSend = !!selectedApi && !!selectedSub && input.trim().length > 0 && !isRunning;
 
   return (
+    <div className="pg-outer">
+      {/* Tab bar */}
+      <div className="pg-tabs">
+        <button className={`pg-tab${playgroundTab === 'model' ? ' active' : ''}`} onClick={() => setPlaygroundTab('model')}>
+          <Play size={14} /> Model
+        </button>
+        <button className={`pg-tab${playgroundTab === 'mcp' ? ' active' : ''}`} onClick={() => setPlaygroundTab('mcp')}>
+          <Server size={14} /> MCP
+        </button>
+        <button className={`pg-tab${playgroundTab === 'a2a' ? ' active' : ''}`} onClick={() => setPlaygroundTab('a2a')}>
+          <ArrowLeftRight size={14} /> A2A
+        </button>
+      </div>
+
+      {playgroundTab === 'mcp' && (
+        <div className="pg-coming-soon">
+          <Server className="page-empty-icon" />
+          <div className="page-empty-title">MCP Playground</div>
+          <p className="page-empty-text">Coming soon — interact with MCP servers directly from the playground.</p>
+        </div>
+      )}
+
+      {playgroundTab === 'a2a' && (
+        <div className="pg-coming-soon">
+          <ArrowLeftRight className="page-empty-icon" />
+          <div className="page-empty-title">A2A Playground</div>
+          <p className="page-empty-text">Coming soon — test agent-to-agent communications from the playground.</p>
+        </div>
+      )}
+
+    {playgroundTab === 'model' && (
     <div className="pg-layout">
       {/* ---- Left: Configuration Panel ---- */}
       <div className="pg-config">
         <div className="pg-config-header">
           <Play size={16} />
-          <span>Playground</span>
+          <span>Model playground</span>
         </div>
 
         <div className="pg-config-body">
@@ -575,6 +608,27 @@ export default function Playground() {
                 </select>
               </div>
 
+              {/* Tracing (visible when subscription selected) */}
+              {selectedSub && (
+                <label className="pg-toggle">
+                  <span>Tracing</span>
+                  <button
+                    className={`pg-toggle-switch${tracing ? ' on' : ''}${!selectedSub.allowTracing ? ' disabled' : ''}`}
+                    onClick={() => {
+                      if (selectedSub.allowTracing) setTracing(!tracing);
+                    }}
+                    role="switch"
+                    aria-checked={tracing}
+                    title={!selectedSub.allowTracing ? 'Tracing not allowed on this subscription' : ''}
+                  >
+                    <span className="pg-toggle-thumb" />
+                  </button>
+                  {!selectedSub.allowTracing && (
+                    <span className="pg-toggle-hint">Not allowed</span>
+                  )}
+                </label>
+              )}
+
               {/* Instructions */}
               <div className="pg-field">
                 <label className="pg-label">Instructions</label>
@@ -619,23 +673,6 @@ export default function Playground() {
                   <button className={`pg-toggle-switch${streaming ? ' on' : ''}`} onClick={() => setStreaming(!streaming)} role="switch" aria-checked={streaming}>
                     <span className="pg-toggle-thumb" />
                   </button>
-                </label>
-                <label className="pg-toggle">
-                  <span>Tracing</span>
-                  <button
-                    className={`pg-toggle-switch${tracing ? ' on' : ''}${selectedSub && !selectedSub.allowTracing ? ' disabled' : ''}`}
-                    onClick={() => {
-                      if (!selectedSub || selectedSub.allowTracing) setTracing(!tracing);
-                    }}
-                    role="switch"
-                    aria-checked={tracing}
-                    title={selectedSub && !selectedSub.allowTracing ? 'Tracing not allowed on this subscription' : ''}
-                  >
-                    <span className="pg-toggle-thumb" />
-                  </button>
-                  {selectedSub && !selectedSub.allowTracing && (
-                    <span className="pg-toggle-hint">Not allowed</span>
-                  )}
                 </label>
               </div>
             </>
@@ -782,6 +819,8 @@ export default function Playground() {
 
       {/* ---- Code Modal ---- */}
       {showCode && <CodeModal url={showCode.url} body={showCode.body} apiType={showCode.apiType} sdkType={showCode.sdkType} apiVersion={showCode.apiVersion} onClose={() => setShowCode(null)} />}
+    </div>
+    )}
     </div>
   );
 }
