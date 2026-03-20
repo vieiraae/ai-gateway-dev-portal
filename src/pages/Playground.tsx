@@ -4,6 +4,7 @@ import {
   ChevronDown, ChevronUp, Bot, User, Loader2, Server, ArrowLeftRight,
 } from 'lucide-react';
 import { useAzure, type WorkspaceData } from '../context/AzureContext';
+import { useLocation } from 'react-router-dom';
 import TraceModal, { type TraceData, type TraceSection } from '../components/TraceModal';
 import CodeModal from '../components/CodeModal';
 import { listDebugCredentials, listGatewayTrace } from '../services/azure';
@@ -49,6 +50,7 @@ interface ChatMessage {
 
 export default function Playground() {
   const { workspaceData, config, getCredential }: { workspaceData: WorkspaceData; getCredential: ReturnType<typeof useAzure>['getCredential']; config: { apimService: { gatewayUrl: string; subscriptionId: string; resourceGroup: string; name: string } | null; apimWorkspace: unknown } } = useAzure();
+  const location = useLocation();
 
   const [playgroundTab, setPlaygroundTab] = useState<'model' | 'mcp' | 'a2a'>('model');
 
@@ -80,6 +82,23 @@ export default function Playground() {
   const inferenceApis = workspaceData.inferenceApis;
   const subs = workspaceData.subscriptions.filter((s) => s.state === 'active');
   const mcpServers = workspaceData.mcpServers;
+
+  /* --- Pre-select API/subscription from navigation state ---------- */
+  useEffect(() => {
+    const state = location.state as { inferenceApi?: InferenceApi; subscription?: ApimSubscription } | null;
+    if (state?.inferenceApi) {
+      setSelectedApi(state.inferenceApi);
+      setPlaygroundTab('model');
+    }
+    if (state?.subscription) {
+      setSelectedSub(state.subscription);
+      setPlaygroundTab('model');
+    }
+    if (state?.inferenceApi || state?.subscription) {
+      // Clear the state so refreshing doesn't re-apply
+      window.history.replaceState({}, '');
+    }
+  }, [location.state]);
 
   /* --- Scroll to bottom ------------------------------------------- */
   useEffect(() => {

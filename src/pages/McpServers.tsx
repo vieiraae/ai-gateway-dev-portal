@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
-import { Server, Search, Copy, Check, X } from 'lucide-react';
+import { Plug, Search, Copy, Check, X } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
 import { useAzure } from '../context/AzureContext';
 import {
@@ -137,7 +137,7 @@ export default function McpServers() {
           <p className="page-description">Select an APIM service to view MCP servers.</p>
         </div>
         <div className="page-empty">
-          <Server className="page-empty-icon" />
+          <Plug className="page-empty-icon" />
           <div className="page-empty-title">No APIM service selected</div>
           <p className="page-empty-text">Use the workspace selector to choose an APIM instance first.</p>
         </div>
@@ -187,7 +187,7 @@ export default function McpServers() {
         <div className="page-empty"><span className="spinner" /></div>
       ) : filtered.length === 0 ? (
         <div className="page-empty">
-          <Server className="page-empty-icon" />
+          <Plug className="page-empty-icon" />
           <div className="page-empty-title">
             {mcpServers.length === 0 ? 'No MCP servers registered' : 'No matching MCP servers'}
           </div>

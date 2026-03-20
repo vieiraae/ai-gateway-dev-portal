@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect } from 'react';
-import { Zap, Search, Copy, Check, X } from 'lucide-react';
-import { useLocation } from 'react-router-dom';
+import { BrainCog, Search, Copy, Check, X, Play } from 'lucide-react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useAzure } from '../context/AzureContext';
 import {
   createMsalCredential,
@@ -118,6 +118,7 @@ export default function InferenceApis() {
   };
 
   const location = useLocation();
+  const navigate = useNavigate();
   useEffect(() => {
     const selectId = (location.state as { selectId?: string } | null)?.selectId;
     if (selectId) {
@@ -159,7 +160,7 @@ export default function InferenceApis() {
           <p className="page-description">Select an APIM service to view inference APIs.</p>
         </div>
         <div className="page-empty">
-          <Zap className="page-empty-icon" />
+          <BrainCog className="page-empty-icon" />
           <div className="page-empty-title">No APIM service selected</div>
           <p className="page-empty-text">Use the workspace selector to choose an APIM instance first.</p>
         </div>
@@ -210,7 +211,7 @@ export default function InferenceApis() {
         <div className="page-empty"><span className="spinner" /></div>
       ) : filtered.length === 0 ? (
         <div className="page-empty">
-          <Zap className="page-empty-icon" />
+          <BrainCog className="page-empty-icon" />
           <div className="page-empty-title">
             {inferenceApis.length === 0 ? 'No inference APIs found' : 'No matching APIs'}
           </div>
@@ -267,7 +268,16 @@ export default function InferenceApis() {
           <div className="sub-panel ia-panel" onClick={(e) => e.stopPropagation()}>
             <div className="sub-panel-header">
               <h2>{selectedApi.displayName}</h2>
-              <button className="icon-btn" onClick={closePanel}><X size={16} /></button>
+              <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                <button
+                  className="sub-btn-primary"
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12 }}
+                  onClick={() => navigate('/playground', { state: { inferenceApi: selectedApi } })}
+                >
+                  <Play size={13} /> Use in playground
+                </button>
+                <button className="icon-btn" onClick={closePanel}><X size={16} /></button>
+              </div>
             </div>
 
             {/* Tabs */}

@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
-import { ArrowLeftRight, Search, Copy, Check, X } from 'lucide-react';
+import { Bot, Search, Copy, Check, X } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
 import { useAzure } from '../context/AzureContext';
 import {
@@ -122,7 +122,7 @@ export default function A2A() {
           <p className="page-description">Select an APIM service to view A2A agents.</p>
         </div>
         <div className="page-empty">
-          <ArrowLeftRight className="page-empty-icon" />
+          <Bot className="page-empty-icon" />
           <div className="page-empty-title">No APIM service selected</div>
           <p className="page-empty-text">Use the workspace selector to choose an APIM instance first.</p>
         </div>
@@ -167,7 +167,7 @@ export default function A2A() {
         <div className="page-empty"><span className="spinner" /></div>
       ) : filtered.length === 0 ? (
         <div className="page-empty">
-          <ArrowLeftRight className="page-empty-icon" />
+          <Bot className="page-empty-icon" />
           <div className="page-empty-title">
             {a2aServers.length === 0 ? 'No A2A configurations' : 'No matching A2A agents'}
           </div>

@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { FlaskConical, Search, ExternalLink, ChevronDown, User, Github } from 'lucide-react';
+import { FlaskConical, Search, ChevronDown, User, Github } from 'lucide-react';
 
 const LABS_URL = 'https://raw.githubusercontent.com/Azure-Samples/AI-Gateway/refs/heads/main/docs/labs-config.json';
 const IMG_BASE = 'https://raw.githubusercontent.com/Azure-Samples/AI-Gateway/refs/heads/main/';

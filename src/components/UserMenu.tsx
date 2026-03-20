@@ -62,6 +62,8 @@ export default function UserMenu() {
     : '?';
 
   const handleSignOut = () => {
+    localStorage.removeItem('customClientId');
+    localStorage.removeItem('customTenant');
     if (isTokenAuth) {
       tokenSignOut();
     } else {

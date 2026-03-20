@@ -12,8 +12,9 @@ Try the hosted version at **https://icy-water-005686203.6.azurestaticapps.net** 
 
 ![Preview](docs/preview.png)
 
-Two sign-in options out of the box:
+Three sign-in options out of the box:
 - **Microsoft Entra ID** — MSAL redirect flow with multi-tenant support
+- **Bring your own app registration** — supply your own Entra ID client ID (and optional tenant) from the sign-in page, no rebuild required
 - **Access token** — paste a token from `az account get-access-token` for quick CLI-based access
 
 ## What's included
@@ -22,14 +23,32 @@ The portal ships with working pages that cover the core Azure API Management AI 
 
 | Page | What it does |
 |---|---|
+| **Dashboard** | At-a-glance KPI tiles (requests, tokens, latency, availability) with trend indicators against a configurable baseline (day/week/month/year). Tokens-by-subscription line chart with interactive legend. Resource list tiles for Inference APIs, MCP Servers, A2A Integrations, and Subscriptions with click-through navigation. |
 | **Model providers** | Browse AI backends with auto-detected provider types (Foundry, Azure OpenAI, OpenAI, Gemini, Anthropic, Bedrock, Hugging Face). Inspect pool members, weights, priorities, and circuit breaker rules. |
 | **Inference APIs** | List inference APIs with provider badges, tag filtering, and detail panels showing subscriptions, revisions, releases, and products. |
 | **MCP servers** | Manage Model Context Protocol servers and API-backed MCP endpoints. Filter by source type. |
-| **A2A** | Browse agent-to-agent configurations with agent IDs and routing paths. |
-| **Playground** | Interactive chat for testing any inference API. Streaming, code generation (JS/Python/cURL), full gateway trace visualization, token usage breakdown, and MCP tool selection. |
+| **A2A integrations** | Browse agent-to-agent configurations with agent IDs and routing paths. |
 | **Products** | Full CRUD — create, publish, unpublish, delete products and manage API associations. |
 | **Subscriptions** | Manage keys (masked display, copy, regenerate), state (activate, suspend, cancel), and scoped access. |
+| **Playground** | Interactive chat for testing any inference API. Streaming, code generation (JS/Python/cURL), full gateway trace visualization, token usage breakdown, and MCP tool selection. |
+| **Labs** | Browse educational lab scenarios from the AI Gateway community. Search, filter by category/service/tags, sort, and view architecture diagrams with links to GitHub repos. |
 | **Logs** | KQL queries against `ApiManagementGatewayLlmLog` with time range and model filters. Click any row for full input/output. |
+| **Evals** | *(Coming soon)* Extract AI Gateway logs and run model, tools, and agent evaluations. |
+| **Requests** | Request volume analytics — requests over time by subscription and by model, success vs error breakdown, and latency distribution. Shared toolbar with time range, granularity, and multi-select model/subscription filters. |
+| **Tokens** | Token usage analytics — total tokens over time by subscription, input/output token breakdown, and throughput charts. |
+| **Performance** | Latency analytics — P50/P95/P99 percentile trends, latency by model, request throughput, and ms-per-token efficiency. |
+| **Availability** | Reliability analytics — success/error rates over time, success rate percentage, throttling trends, and error breakdown by response code. |
+
+### Shared analytics features
+
+All analytics pages (Dashboard, Requests, Tokens, Performance, Availability) share a common toolbar with:
+
+- **Time range** — 30m to 30d presets, or custom date range picker
+- **Auto-refresh** — configurable interval (1/5/15/30 min)
+- **Granularity** — auto or manual (1m to 30d), resolved based on time range
+- **Filters** — multi-select model and subscription dropdowns
+- **Fullscreen** — expand any chart section to full screen
+- **Interactive legends** — hover to highlight a series, click to lock focus
 
 Plus: workspace selector (subscription → APIM instance → workspace), global `Ctrl+K` search, light/dark/system theme, and multi-tenant directory switching.
 
@@ -254,10 +273,13 @@ src/
 │   ├── TokenAuthContext.tsx    # Access token auth state
 │   └── ThemeContext.tsx        # Light/dark/system theme
 ├── services/azure.ts          # All Azure SDK + REST API calls
+├── hooks/
+│   └── useLegendHighlight.ts  # Interactive chart legend highlight + lock
 ├── components/
 │   ├── Layout.tsx              # Shell (header + sidebar + content)
 │   ├── Header.tsx              # Top bar with workspace selector + search
 │   ├── Sidebar.tsx             # Navigation (single navItems array)
+│   ├── AnalyticsToolbar.tsx    # Shared filters, time range, granularity, auto-refresh
 │   ├── SearchBar.tsx           # Ctrl+K global search
 │   ├── LoginPage.tsx           # Entra ID + token sign-in
 │   ├── WorkspaceSelector.tsx   # Subscription → APIM → workspace picker
@@ -267,6 +289,11 @@ src/
 │   ├── ConfirmModal.tsx        # Reusable confirmation dialog
 │   └── LoadingModal.tsx        # Workspace loading progress
 └── pages/
+    ├── Dashboard.tsx           # KPI tiles, trend chart, resource list tiles
+    ├── Requests.tsx            # Request volume analytics (drill-down)
+    ├── Tokens.tsx              # Token usage analytics (drill-down)
+    ├── Performance.tsx         # Latency & throughput analytics (drill-down)
+    ├── Availability.tsx        # Success rate & error analytics (drill-down)
     ├── ModelProviders.tsx      # AI backends + pool/circuit breaker tabs
     ├── InferenceApis.tsx       # APIs with revisions, releases, products
     ├── McpServers.tsx          # MCP server management
@@ -275,9 +302,9 @@ src/
     ├── Products.tsx            # Product CRUD + API associations
     ├── Subscriptions.tsx       # Key management + state control
     ├── Logs.tsx                # KQL-based LLM log viewer
-    ├── Dashboard.tsx           # Overview (extensible)
-    ├── Metrics.tsx             # Placeholder (extensible)
-    └── Analytics.tsx           # Placeholder (extensible)
+    ├── Labs.tsx                # Educational lab scenario browser
+    ├── Evals.tsx               # Evaluation runner (coming soon)
+    └── NamedValues.tsx         # Named value management (coming soon)
 ```
 
 ---
@@ -307,6 +334,7 @@ For backend pools, the type is inferred from the first member that matches.
 | Framework | React 19 + TypeScript 5.9 |
 | Build | Vite 8 |
 | Auth | MSAL Browser + MSAL React |
+| Charts | Recharts |
 | Azure SDK | `@azure/arm-apimanagement`, `@azure/arm-monitor`, `@azure/arm-machinelearning`, `@azure/arm-resources-subscriptions` |
 | Icons | Lucide React |
 | Routing | React Router 7 |

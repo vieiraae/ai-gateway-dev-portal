@@ -1,23 +1,33 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { ScrollText, Search, X, RefreshCw } from 'lucide-react';
+import { ScrollText, Search, X, ArrowUp, ArrowDown, ArrowUpDown } from 'lucide-react';
 import { useAzure } from '../context/AzureContext';
 import { createMsalCredential, queryLogAnalytics } from '../services/azure';
 import { useMsal } from '@azure/msal-react';
-
-type TimeRange = '1h' | '24h';
+import AnalyticsToolbar, {
+  useToolbarState, TIME_RANGES,
+  type TimeRange,
+} from '../components/AnalyticsToolbar';
 
 interface LlmLogRow {
   timestamp: string;
   model: string;
+  subscription: string;
   tokens: number;
   input: string;
   output: string;
   id: string;
 }
 
-function buildKql(timeRange: TimeRange): string {
+function buildKql(timeRange: TimeRange, customStart: string, customEnd: string): string {
+  let timeFilter: string;
+  if (timeRange === 'custom' && customStart && customEnd) {
+    timeFilter = `| where TimeGenerated > datetime('${new Date(customStart).toISOString()}') and TimeGenerated <= datetime('${new Date(customEnd).toISOString()}')`;
+  } else {
+    const ago = TIME_RANGES.find((t) => t.value === timeRange)?.ago ?? '24h';
+    timeFilter = `| where TimeGenerated > ago(${ago})`;
+  }
   return `ApiManagementGatewayLlmLog
-| where TimeGenerated > ago(${timeRange})
+${timeFilter}
 | extend RequestArray = parse_json(RequestMessages)
 | extend ResponseArray = parse_json(ResponseMessages)
 | mv-expand RequestArray
@@ -25,7 +35,8 @@ function buildKql(timeRange: TimeRange): string {
 | project CorrelationId, RequestContent = tostring(RequestArray.content), ResponseContent = tostring(ResponseArray.content), ModelName, TotalTokens, DeploymentName, TimeGenerated
 | summarize input = strcat_array(make_list(RequestContent), ' '), output = strcat_array(make_list(ResponseContent), ' '), ModelName = take_any(ModelName), TotalTokens = sum(TotalTokens), DeploymentName = take_any(DeploymentName), TimeGenerated = max(TimeGenerated) by CorrelationId
 | where isnotempty(input) and isnotempty(output)
-| project timestamp = TimeGenerated, model = ModelName, tokens = TotalTokens, input, output, id = CorrelationId
+| join kind=leftouter (ApiManagementGatewayLogs | project CorrelationId, ApimSubscriptionId) on CorrelationId
+| project timestamp = TimeGenerated, model = ModelName, subscription = ApimSubscriptionId, tokens = TotalTokens, input, output, id = CorrelationId
 | order by timestamp desc`;
 }
 
@@ -53,11 +64,28 @@ export default function Logs() {
   const { config } = useAzure();
   const { instance } = useMsal();
 
-  const [timeRange, setTimeRange] = useState<TimeRange>('24h');
-  const [modelFilter, setModelFilter] = useState('all');
+  const tb = useToolbarState();
+  const { timeRange, customStart, customEnd, containerRef,
+    setLoading, setAllModels, setAllSubs, setLastRefresh } = tb;
   const [search, setSearch] = useState('');
+
+  type SortKey = 'timestamp' | 'subscription' | 'model' | 'tokens';
+  type SortDir = 'asc' | 'desc';
+  const [sortKey, setSortKey] = useState<SortKey>('timestamp');
+  const [sortDir, setSortDir] = useState<SortDir>('desc');
+
+  const toggleSort = (key: SortKey) => {
+    if (sortKey === key) setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'));
+    else { setSortKey(key); setSortDir(key === 'tokens' ? 'desc' : 'asc'); }
+  };
+
+  const SortIcon = ({ col }: { col: SortKey }) => {
+    if (sortKey !== col) return <ArrowUpDown size={12} className="logs-sort-icon logs-sort-idle" />;
+    return sortDir === 'asc'
+      ? <ArrowUp size={12} className="logs-sort-icon" />
+      : <ArrowDown size={12} className="logs-sort-icon" />;
+  };
   const [rows, setRows] = useState<LlmLogRow[]>([]);
-  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selected, setSelected] = useState<LlmLogRow | null>(null);
 
@@ -72,17 +100,20 @@ export default function Logs() {
     setLoading(true);
     setError(null);
     try {
-      const result = await queryLogAnalytics(getCredential(), service.id, buildKql(timeRange));
-      setRows(
-        result.map((r) => ({
+      const result = await queryLogAnalytics(getCredential(), service.id, buildKql(timeRange, customStart, customEnd));
+      const mapped = result.map((r) => ({
           timestamp: String(r.timestamp ?? ''),
           model: String(r.model ?? ''),
+          subscription: String(r.subscription ?? ''),
           tokens: Number(r.tokens ?? 0),
           input: String(r.input ?? ''),
           output: String(r.output ?? ''),
           id: String(r.id ?? ''),
-        })),
-      );
+        }));
+      setRows(mapped);
+      setAllModels([...new Set(mapped.map((r) => r.model).filter(Boolean))].sort());
+      setAllSubs([...new Set(mapped.map((r) => r.subscription).filter(Boolean))].sort());
+      setLastRefresh(new Date());
     } catch (err) {
       console.error('Failed to query logs:', err);
       setError(err instanceof Error ? err.message : 'Failed to query logs');
@@ -90,7 +121,7 @@ export default function Logs() {
     } finally {
       setLoading(false);
     }
-  }, [service, getCredential, timeRange]);
+  }, [service, getCredential, timeRange, customStart, customEnd, setLoading, setAllModels, setAllSubs, setLastRefresh]);
 
   useEffect(() => {
     if (service) void fetchLogs();
@@ -103,17 +134,25 @@ export default function Logs() {
     return () => window.removeEventListener('close-detail-panel', closePanel);
   }, [closePanel]);
 
-  // Unique models for filter dropdown
-  const models = [...new Set(rows.map((r) => r.model).filter(Boolean))].sort();
-
   // Client-side filtering
   const filtered = rows.filter((r) => {
-    if (modelFilter !== 'all' && r.model !== modelFilter) return false;
+    if (tb.modelFilter.length > 0 && !tb.modelFilter.includes(r.model)) return false;
+    if (tb.subFilter.length > 0 && !tb.subFilter.includes(r.subscription)) return false;
     if (search) {
       const q = search.toLowerCase();
       if (!r.input.toLowerCase().includes(q) && !r.output.toLowerCase().includes(q)) return false;
     }
     return true;
+  });
+
+  const sorted = [...filtered].sort((a, b) => {
+    const dir = sortDir === 'asc' ? 1 : -1;
+    switch (sortKey) {
+      case 'timestamp': return dir * a.timestamp.localeCompare(b.timestamp);
+      case 'subscription': return dir * a.subscription.localeCompare(b.subscription);
+      case 'model': return dir * a.model.localeCompare(b.model);
+      case 'tokens': return dir * (a.tokens - b.tokens);
+    }
   });
 
   if (!service) {
@@ -137,46 +176,31 @@ export default function Logs() {
   }
 
   return (
-    <div className="page-container logs-page">
-      <div className="page-header">
-        <div>
-          <h1 className="page-title">Logs</h1>
-          <p className="page-description">
-            LLM request logs from Azure Monitor — {service.name}
-          </p>
-        </div>
+    <div className="db-container logs-page" ref={containerRef}>
+      <div className="page-header" style={{ padding: '16px 20px 0' }}>
+        <h1 className="page-title">Logs</h1>
       </div>
 
       {/* Toolbar */}
-      <div className="sub-toolbar">
-        <div className="sub-search">
-          <Search size={14} className="sub-search-icon" />
-          <input
-            type="text"
-            placeholder="Search input / output…"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-        </div>
-        <div className="sub-filters">
-          <select value={timeRange} onChange={(e) => setTimeRange(e.target.value as TimeRange)}>
-            <option value="1h">Last hour</option>
-            <option value="24h">Last 24 hours</option>
-          </select>
-          <select value={modelFilter} onChange={(e) => setModelFilter(e.target.value)}>
-            <option value="all">All models</option>
-            {models.map((m) => (
-              <option key={m} value={m}>{m}</option>
-            ))}
-          </select>
-          <button className="logs-refresh-btn" onClick={() => void fetchLogs()} disabled={loading} title="Refresh">
-            <RefreshCw size={14} className={loading ? 'spin' : ''} />
-          </button>
-        </div>
-      </div>
+      <AnalyticsToolbar
+        state={tb}
+        onRefresh={() => void fetchLogs()}
+        hideGranularity
+        extra={
+          <div className="sub-search" style={{ marginLeft: 4 }}>
+            <Search size={14} className="sub-search-icon" />
+            <input
+              type="text"
+              placeholder="Search input / output…"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+          </div>
+        }
+      />
 
       {/* Content */}
-      {loading && rows.length === 0 ? (
+      {tb.loading && rows.length === 0 ? (
         <div className="page-empty"><span className="spinner" /></div>
       ) : error ? (
         <div className="page-empty">
@@ -201,22 +225,24 @@ export default function Logs() {
           <table className="sub-table logs-table">
             <thead>
               <tr>
-                <th>Timestamp</th>
-                <th>Model</th>
-                <th>Tokens</th>
+                <th className="logs-sortable" onClick={() => toggleSort('timestamp')}>Timestamp <SortIcon col="timestamp" /></th>
+                <th className="logs-sortable" onClick={() => toggleSort('subscription')}>Subscription <SortIcon col="subscription" /></th>
+                <th className="logs-sortable" onClick={() => toggleSort('model')}>Model <SortIcon col="model" /></th>
+                <th className="logs-sortable" onClick={() => toggleSort('tokens')}>Tokens <SortIcon col="tokens" /></th>
                 <th>Input</th>
                 <th>Output</th>
                 <th>ID</th>
               </tr>
             </thead>
             <tbody>
-              {filtered.map((row) => (
+              {sorted.map((row) => (
                 <tr
                   key={row.id}
                   className={`sub-row${selected?.id === row.id ? ' selected' : ''}`}
                   onClick={() => setSelected(row)}
                 >
                   <td className="logs-ts-cell">{formatTimestamp(row.timestamp)}</td>
+                  <td className="logs-sub-cell">{row.subscription || '—'}</td>
                   <td><span className="logs-model-badge">{row.model || '—'}</span></td>
                   <td className="logs-tokens-cell">{row.tokens.toLocaleString()}</td>
                   <td className="logs-text-cell" title={row.input}>{truncate(row.input, 80)}</td>
@@ -246,6 +272,10 @@ export default function Logs() {
                 <div className="sub-panel-field">
                   <label>Timestamp</label>
                   <span>{new Date(selected.timestamp).toLocaleString()}</span>
+                </div>
+                <div className="sub-panel-field">
+                  <label>Subscription</label>
+                  <span>{selected.subscription || '—'}</span>
                 </div>
                 <div className="sub-panel-field">
                   <label>Model</label>

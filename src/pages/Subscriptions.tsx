@@ -102,6 +102,8 @@ function MaskedKey({ value }: { value: string }) {
 function ActionsDropdown({ sub, onAction }: { sub: ApimSubscription; onAction: (action: string, sub: ApimSubscription) => void }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
+  const btnRef = useRef<HTMLButtonElement>(null);
+  const [menuPos, setMenuPos] = useState<{ top: number; right: number }>({ top: 0, right: 0 });
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
@@ -110,6 +112,14 @@ function ActionsDropdown({ sub, onAction }: { sub: ApimSubscription; onAction: (
     if (open) document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
   }, [open]);
+
+  const toggleMenu = () => {
+    if (!open && btnRef.current) {
+      const rect = btnRef.current.getBoundingClientRect();
+      setMenuPos({ top: rect.bottom + 4, right: window.innerWidth - rect.right });
+    }
+    setOpen(!open);
+  };
 
   const isActive = sub.state === 'active';
   const isSuspended = sub.state === 'suspended';
@@ -126,11 +136,11 @@ function ActionsDropdown({ sub, onAction }: { sub: ApimSubscription; onAction: (
 
   return (
     <div className="sub-actions-dropdown" ref={ref}>
-      <button className="sub-btn-danger" onClick={() => setOpen(!open)}>
+      <button className="sub-btn-danger" ref={btnRef} onClick={toggleMenu}>
         Actions <ChevronDown size={13} className={open ? 'chevron-open' : ''} />
       </button>
       {open && (
-        <div className="sub-actions-menu">
+        <div className="sub-actions-menu" style={{ position: 'fixed', top: menuPos.top, right: menuPos.right }}>
           {actions.map(({ key, label, icon: Icon, disabled, danger }) => (
             <button
               key={key}
@@ -441,15 +451,23 @@ export default function Subscriptions() {
           <div className="sub-panel" ref={panelRef} onClick={(e) => e.stopPropagation()}>
             <div className="sub-panel-header">
               <h2>{panelMode === 'create' ? 'Add subscription' : panelMode === 'edit' ? 'Edit subscription' : selectedSub?.displayName}</h2>
-              <button className="icon-btn" onClick={closePanel}><X size={16} /></button>
+              <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                {panelMode === 'detail' && selectedSub && (
+                  <button
+                    className="sub-btn-primary"
+                    style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12 }}
+                    onClick={() => navigate('/playground', { state: { subscription: selectedSub } })}
+                  >
+                    <Play size={13} /> Use in playground
+                  </button>
+                )}
+                <button className="icon-btn" onClick={closePanel}><X size={16} /></button>
+              </div>
             </div>
 
             {panelMode === 'detail' && selectedSub && (
               <div className="sub-panel-body">
                 <div className="sub-panel-actions">
-                  <button className="sub-btn-secondary" onClick={() => void navigate('/playground')}>
-                    <Play size={13} /> Use in playground
-                  </button>
                   <button className="sub-btn-secondary" onClick={() => openEdit(selectedSub)}>
                     <Pencil size={13} /> Edit
                   </button>

@@ -6,6 +6,7 @@ import {
 } from '@azure/msal-react';
 import { InteractionStatus } from '@azure/msal-browser';
 import { AzureProvider } from './context/AzureContext';
+import { SharedFiltersProvider } from './components/AnalyticsToolbar';
 import { useTokenAuth } from './context/TokenAuthContext';
 import Layout from './components/Layout';
 import LoginPage from './components/LoginPage';
@@ -17,10 +18,14 @@ import A2A from './pages/A2A';
 import Products from './pages/Products';
 import Subscriptions from './pages/Subscriptions';
 import Playground from './pages/Playground';
-import Metrics from './pages/Metrics';
+
 import Logs from './pages/Logs';
-import Analytics from './pages/Analytics';
+import Requests from './pages/Requests';
+import Tokens from './pages/Tokens';
+import Performance from './pages/Performance';
+import Availability from './pages/Availability';
 import Labs from './pages/Labs';
+import Evals from './pages/Evals';
 
 function LoadingScreen() {
   return (
@@ -40,24 +45,30 @@ function LoadingScreen() {
 function AuthenticatedRoutes() {
   return (
     <AzureProvider>
-      <Routes>
-        <Route element={<Layout />}>
-          <Route index element={<Navigate to="/dashboard" replace />} />
-          <Route path="dashboard" element={<Dashboard />} />
-          <Route path="model-providers" element={<ModelProviders />} />
-          <Route path="inference-apis" element={<InferenceApis />} />
-          <Route path="mcp-servers" element={<McpServers />} />
-          <Route path="a2a" element={<A2A />} />
-          <Route path="products" element={<Products />} />
-          <Route path="subscriptions" element={<Subscriptions />} />
-          <Route path="playground" element={<Playground />} />
-          <Route path="metrics" element={<Metrics />} />
-          <Route path="logs" element={<Logs />} />
-          <Route path="analytics" element={<Analytics />} />
-          <Route path="labs" element={<Labs />} />
-          <Route path="*" element={<Navigate to="/dashboard" replace />} />
-        </Route>
-      </Routes>
+      <SharedFiltersProvider>
+        <Routes>
+          <Route element={<Layout />}>
+            <Route index element={<Navigate to="/dashboard" replace />} />
+            <Route path="dashboard" element={<Dashboard />} />
+            <Route path="model-providers" element={<ModelProviders />} />
+            <Route path="inference-apis" element={<InferenceApis />} />
+            <Route path="mcp-servers" element={<McpServers />} />
+            <Route path="a2a" element={<A2A />} />
+            <Route path="products" element={<Products />} />
+            <Route path="subscriptions" element={<Subscriptions />} />
+            <Route path="playground" element={<Playground />} />
+
+            <Route path="logs" element={<Logs />} />
+            <Route path="requests" element={<Requests />} />
+            <Route path="tokens" element={<Tokens />} />
+            <Route path="performance" element={<Performance />} />
+            <Route path="availability" element={<Availability />} />
+            <Route path="labs" element={<Labs />} />
+            <Route path="evals" element={<Evals />} />
+            <Route path="*" element={<Navigate to="/dashboard" replace />} />
+          </Route>
+        </Routes>
+      </SharedFiltersProvider>
     </AzureProvider>
   );
 }

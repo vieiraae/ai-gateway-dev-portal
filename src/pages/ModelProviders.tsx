@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { BrainCircuit, Search, ExternalLink, ShieldCheck, Layers, Copy, Check } from 'lucide-react';
+import { CloudCog, Search, ExternalLink, ShieldCheck, Layers, Copy, Check } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
 import { useAzure } from '../context/AzureContext';
 import type { ApimBackend, ProviderType } from '../types';
@@ -102,7 +102,7 @@ export default function ModelProviders() {
           <p className="page-description">Select an APIM service to view model providers.</p>
         </div>
         <div className="page-empty">
-          <BrainCircuit className="page-empty-icon" />
+          <CloudCog className="page-empty-icon" />
           <div className="page-empty-title">No APIM service selected</div>
           <p className="page-empty-text">Use the workspace selector to choose an APIM instance first.</p>
         </div>
@@ -145,7 +145,7 @@ export default function ModelProviders() {
         <div className="page-empty"><span className="spinner" /></div>
       ) : filtered.length === 0 ? (
         <div className="page-empty">
-          <BrainCircuit className="page-empty-icon" />
+          <CloudCog className="page-empty-icon" />
           <div className="page-empty-title">
             {modelProviders.length === 0 ? 'No model providers found' : 'No matching providers'}
           </div>

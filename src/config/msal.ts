@@ -1,9 +1,14 @@
 import type { Configuration, PopupRequest } from '@azure/msal-browser';
 
+const customClientId = localStorage.getItem('customClientId') || '';
+const customTenant = localStorage.getItem('customTenant') || '';
+
 export const msalConfig: Configuration = {
   auth: {
-    clientId: import.meta.env.VITE_AZURE_CLIENT_ID ?? '',
-    authority: 'https://login.microsoftonline.com/organizations',
+    clientId: customClientId || (import.meta.env.VITE_AZURE_CLIENT_ID ?? ''),
+    authority: customTenant
+      ? `https://login.microsoftonline.com/${customTenant}`
+      : 'https://login.microsoftonline.com/organizations',
     redirectUri: window.location.origin,
     postLogoutRedirectUri: window.location.origin,
   },

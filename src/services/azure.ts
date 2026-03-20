@@ -52,8 +52,8 @@ export type MsalCredential = ReturnType<typeof createMsalCredential>;
  */
 export function createStaticCredential(token: string): MsalCredential {
   return {
-    async getToken() {
-      return { token, expiresOnTimestamp: Date.now() + 3600_000 };
+    getToken() {
+      return Promise.resolve({ token, expiresOnTimestamp: Date.now() + 3600_000 });
     },
   };
 }
