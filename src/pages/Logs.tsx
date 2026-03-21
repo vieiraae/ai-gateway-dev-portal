@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { ScrollText, Search, X, ArrowUp, ArrowDown, ArrowUpDown } from 'lucide-react';
+import { ScrollText, Search, X, ArrowUp, ArrowDown, ArrowUpDown, ArrowLeft } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { useAzure } from '../context/AzureContext';
 import { createMsalCredential, queryLogAnalytics } from '../services/azure';
 import { useMsal } from '@azure/msal-react';
@@ -63,6 +64,7 @@ function formatTimestamp(ts: string): string {
 export default function Logs() {
   const { config } = useAzure();
   const { instance } = useMsal();
+  const navigate = useNavigate();
 
   const tb = useToolbarState();
   const { timeRange, customStart, customEnd, containerRef,
@@ -177,8 +179,14 @@ export default function Logs() {
 
   return (
     <div className="db-container logs-page" ref={containerRef}>
-      <div className="page-header" style={{ padding: '16px 20px 0' }}>
-        <h1 className="page-title">Logs</h1>
+      <div className="req-header">
+        <button className="req-back" onClick={() => void navigate('/dashboard')} title="Back to Dashboard">
+          <ArrowLeft size={16} />
+        </button>
+        <div>
+          <h2 className="req-title">Logs</h2>
+          <p className="req-subtitle">Request logs and diagnostic traces from Azure Monitor</p>
+        </div>
       </div>
 
       {/* Toolbar */}

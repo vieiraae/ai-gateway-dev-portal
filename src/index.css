@@ -3689,6 +3689,7 @@ button {
   animation: confirm-fade-in 0.15s ease-out;
 }
 .trace-dialog {
+  position: relative;
   background: var(--bg-elevated);
   border: 1px solid var(--border-strong);
   border-radius: var(--radius-lg);
@@ -3738,7 +3739,31 @@ button {
   flex: 1;
   overflow-y: auto;
   padding: 16px 20px 20px;
+  scrollbar-width: auto;
 }
+.trace-body::-webkit-scrollbar { width: 10px; }
+.trace-body::-webkit-scrollbar-track { background: var(--bg-secondary); border-radius: 5px; }
+.trace-body::-webkit-scrollbar-thumb { background: var(--text-tertiary); border-radius: 5px; min-height: 40px; }
+.trace-body::-webkit-scrollbar-thumb:hover { background: var(--text-secondary); }
+.trace-top-btn {
+  position: absolute;
+  bottom: 16px;
+  right: 24px;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-full);
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  opacity: 0.85;
+  transition: opacity 0.15s;
+}
+.trace-top-btn:hover { opacity: 1; }
 
 /* Pipeline visual */
 .trace-pipeline {
@@ -4339,6 +4364,23 @@ button {
 .db-chart-title svg {
   color: #f9e2af;
 }
+.db-chart-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 4px 10px;
+  font-size: 12px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+}
+.db-chart-action:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+}
 .db-chart-controls {
   display: inline-flex;
   align-items: center;
@@ -4484,6 +4526,40 @@ button {
   color: var(--text-secondary) !important;
   font-size: 12px !important;
   font-style: italic;
+}
+.db-list-tile-item-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.db-list-tile-item-name {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.db-list-tile-provider-icon {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  border-radius: 2px;
+}
+.db-list-tile-copy-btn {
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  padding: 2px 4px;
+  cursor: pointer;
+  color: var(--text-secondary);
+  opacity: 0;
+  transition: opacity 0.15s, color 0.15s;
+  border-radius: 4px;
+}
+.db-list-tile-item-row:hover .db-list-tile-copy-btn {
+  opacity: 1;
+}
+.db-list-tile-copy-btn:hover {
+  color: var(--accent);
 }
 
 /* ── Requests page ── */

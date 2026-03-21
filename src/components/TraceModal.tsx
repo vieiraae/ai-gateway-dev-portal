@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { X, ArrowDownToLine, ArrowUpFromLine, Server, AlertTriangle, Send, FileText } from 'lucide-react';
+import { useState, useRef, useEffect, useCallback } from 'react';
+import { X, ArrowDownToLine, ArrowUpFromLine, Server, AlertTriangle, Send, FileText, ArrowUp } from 'lucide-react';
 
 export interface TraceData {
   request: {
@@ -47,6 +47,21 @@ const PANELS: { key: PanelKey; label: string; icon: typeof Send }[] = [
 
 export default function TraceModal({ trace, onClose }: Props) {
   const [selected, setSelected] = useState<PanelKey>('request');
+  const bodyRef = useRef<HTMLDivElement>(null);
+  const [showTop, setShowTop] = useState(false);
+
+  const onScroll = useCallback(() => {
+    if (bodyRef.current) setShowTop(bodyRef.current.scrollTop > 200);
+  }, []);
+
+  useEffect(() => {
+    const el = bodyRef.current;
+    if (!el) return;
+    el.addEventListener('scroll', onScroll, { passive: true });
+    return () => el.removeEventListener('scroll', onScroll);
+  }, [onScroll]);
+
+  const scrollToTop = () => bodyRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
 
   const hasData = (key: PanelKey): boolean => {
     if (key === 'request' || key === 'response') return true;
@@ -61,7 +76,7 @@ export default function TraceModal({ trace, onClose }: Props) {
     <div className="trace-overlay" onClick={onClose}>
       <div className="trace-dialog" onClick={(e) => e.stopPropagation()}>
         <div className="trace-header">
-          <h2>API Gateway Trace</h2>
+          <h2>AI Gateway trace</h2>
           <div className="trace-header-meta">
             <span className={`trace-status-badge ${statusClass}`}>{trace.response.statusCode}</span>
             <span className="trace-elapsed">{trace.response.elapsedMs}ms</span>
@@ -69,7 +84,7 @@ export default function TraceModal({ trace, onClose }: Props) {
           <button className="icon-btn" onClick={onClose} aria-label="Close"><X size={16} /></button>
         </div>
 
-        <div className="trace-body">
+        <div className="trace-body" ref={bodyRef}>
           {/* Pipeline visual */}
           <div className="trace-pipeline">
             {PANELS.map((p, i) => {
@@ -108,6 +123,11 @@ export default function TraceModal({ trace, onClose }: Props) {
             </div>
           </div>
         </div>
+        {showTop && (
+          <button className="trace-top-btn" onClick={scrollToTop} title="Scroll to top">
+            <ArrowUp size={16} />
+          </button>
+        )}
       </div>
     </div>
   );
@@ -174,7 +194,7 @@ function ResponsePanel({ resp }: { resp: TraceData['response'] }) {
       {resp.body != null && (
         <>
           <div className="trace-sub-title">Response Content</div>
-          <pre className="trace-code">{typeof resp.body === 'string' ? resp.body : JSON.stringify(resp.body, null, 2)}</pre>
+          <pre className="trace-code">{typeof resp.body === 'string' ? resp.body : JSON.stringify(resp.body)}</pre>
         </>
       )}
     </div>

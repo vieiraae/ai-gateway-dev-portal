@@ -64,7 +64,7 @@ export default function Playground() {
   const [tracing, setTracing] = useState(false);
   const [apiType, setApiType] = useState<ApiType>('completions');
   const [sdkType, setSdkType] = useState<SdkType>('openai');
-  const [apiVersion, setApiVersion] = useState('2024-10-21');
+  const [apiVersion, setApiVersion] = useState('2025-03-01-preview');
 
   /* --- Chat state ------------------------------------------------- */
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -388,7 +388,8 @@ export default function Playground() {
         // Attach codeInfo after stream completes
         setMessages((prev) => prev.map((m) => m.id === assistantId ? { ...m, codeInfo } : m));
       } else {
-        const json = await resp.json() as Record<string, unknown>;
+        const rawText = await resp.text();
+        const json = JSON.parse(rawText) as Record<string, unknown>;
         const latencyMs = Date.now() - startTime;
 
         let content = '';
@@ -416,7 +417,7 @@ export default function Playground() {
         const trace = await buildTraceData(requestInfo, respHeaders, {
           statusCode: resp.status,
           elapsedMs: latencyMs,
-          body: json,
+          body: rawText,
         }, fetchTraceFn);
 
         setMessages((prev) => prev.map((m) =>
@@ -550,7 +551,7 @@ export default function Playground() {
                   <select className="pg-select" value={apiType} onChange={(e) => {
                     const t = e.target.value as ApiType;
                     setApiType(t);
-                    setApiVersion(t === 'completions' ? '2024-10-21' : '2025-03-01');
+                    setApiVersion(t === 'completions' ? '2025-03-01-preview' : '2025-03-01');
                   }}>
                     <option value="completions">Completions API</option>
                     <option value="responses">Responses API</option>

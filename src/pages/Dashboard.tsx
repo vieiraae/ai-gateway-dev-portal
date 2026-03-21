@@ -3,7 +3,7 @@ import {
   LayoutDashboard,
   TrendingUp, TrendingDown, Minus,
   Activity, Coins, Gauge, ShieldCheck,
-  BrainCog, Plug, Bot, KeyRound,
+  BrainCog, Plug, Bot, KeyRound, Copy, Check, ScrollText,
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAzure } from '../context/AzureContext';
@@ -17,10 +17,21 @@ import AnalyticsToolbar, {
   useToolbarState, TIME_RANGES,
 } from '../components/AnalyticsToolbar';
 import useLegendHighlight from '../hooks/useLegendHighlight';
+import type { ProviderType } from '../types';
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
 /* ------------------------------------------------------------------ */
+
+const PROVIDER_ICONS: Partial<Record<ProviderType, string>> = {
+  foundry: '/foundry.svg',
+  azureopenai: '/azureopenai.svg',
+  openai: '/openai.svg',
+  gemini: '/gemini.svg',
+  anthropic: '/anthropic.svg',
+  bedrock: '/bedrock.svg',
+  huggingface: '/huggingface.svg',
+};
 
 type Baseline = '1d' | '7d' | '30d' | '365d';
 
@@ -202,6 +213,7 @@ export default function Dashboard() {
   const [chartSubs, setChartSubs] = useState<string[]>([]);
   const [chartLoading, setChartLoading] = useState(false);
   const [data, setData] = useState<TileData | null>(null);
+  const [copiedKey, setCopiedKey] = useState<string | null>(null);
 
   /* --- Fetch data ------------------------------------------------- */
   const fetchData = useCallback(async () => {
@@ -495,6 +507,10 @@ export default function Dashboard() {
             <Coins size={16} />
             Tokens by Subscription
           </h3>
+          <button className="db-chart-action" onClick={() => void navigate('/logs')} title="View logs">
+            <ScrollText size={14} />
+            View logs
+          </button>
         </div>
         <div className="db-chart-body">
           {chartLoading && chartData.length === 0 ? (
@@ -571,7 +587,12 @@ export default function Dashboard() {
           </div>
           <ul className="db-list-tile-items">
             {workspaceData.inferenceApis.slice(0, 8).map((api) => (
-              <li key={api.id}>{api.displayName}</li>
+              <li key={api.id} className="db-list-tile-item-row">
+                {PROVIDER_ICONS[api.providerType] && (
+                  <img src={PROVIDER_ICONS[api.providerType]} alt="" className="db-list-tile-provider-icon" />
+                )}
+                <span className="db-list-tile-item-name">{api.displayName}</span>
+              </li>
             ))}
             {workspaceData.inferenceApis.length === 0 && <li className="db-list-tile-empty">No APIs found</li>}
             {workspaceData.inferenceApis.length > 8 && <li className="db-list-tile-more">+{workspaceData.inferenceApis.length - 8} more</li>}
@@ -616,7 +637,24 @@ export default function Dashboard() {
           </div>
           <ul className="db-list-tile-items">
             {workspaceData.subscriptions.slice(0, 8).map((sub) => (
-              <li key={sub.id}>{sub.displayName}</li>
+              <li key={sub.id} className="db-list-tile-item-row">
+                <span className="db-list-tile-item-name">{sub.displayName}</span>
+                {sub.primaryKey && (
+                  <button
+                    className="db-list-tile-copy-btn"
+                    title="Copy primary key"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      void navigator.clipboard.writeText(sub.primaryKey).then(() => {
+                        setCopiedKey(sub.id);
+                        setTimeout(() => setCopiedKey(null), 2000);
+                      });
+                    }}
+                  >
+                    {copiedKey === sub.id ? <Check size={12} /> : <Copy size={12} />}
+                  </button>
+                )}
+              </li>
             ))}
             {workspaceData.subscriptions.length === 0 && <li className="db-list-tile-empty">No subscriptions found</li>}
             {workspaceData.subscriptions.length > 8 && <li className="db-list-tile-more">+{workspaceData.subscriptions.length - 8} more</li>}
